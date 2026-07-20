@@ -18,6 +18,7 @@ Home Ideator connects to IoT sensor boards (e.g. ESP8266 / Arduino with a curren
 - [Setup & Installation](#-setup--installation)
 - [Running the App](#-running-the-app)
 - [Rating Generator Tool](#-rating-generator-tool)
+- [Testing](#-testing)
 - [Bug Fixes Applied](#-bug-fixes-applied)
 - [Screens Overview](#-screens-overview)
 
@@ -449,6 +450,165 @@ Time Stamp, Voltage, Current, ...
 | **Dashboard** | Host widget with animated bubble bottom navigation bar |
 | **Home Tab** | Real-time animated circular gauges per IoT device (Voltage / Current / Power) |
 | **Shop Tab** | Firestore-powered product list with images, ratings, costs, and buy links |
+
+---
+
+## 🧪 Testing
+
+The project includes a comprehensive test suite covering unit tests, widget tests, and logic tests across all layers of the app.
+
+### Test Structure
+
+```
+test/
+├── all_tests.dart                     ← Master runner (runs all suites)
+│
+├── model/
+│   └── board_test.dart                ← Board model unit tests
+│
+├── setup/
+│   ├── signin_test.dart               ← LoginPage widget tests
+│   ├── signup_test.dart               ← SignUp widget tests
+│   └── welcome_page_test.dart         ← WelcomePage widget tests
+│
+└── pages/
+    └── sensor_logic_test.dart         ← Sensor gauge + rating logic unit tests
+```
+
+### Test Coverage by File
+
+#### `test/model/board_test.dart` — Board Model (10 groups, 40+ cases)
+
+| Group | What is tested |
+|-------|----------------|
+| Primary constructor | All 6 fields stored correctly, key not null, empty strings allowed |
+| `fromSnapshot` | Complete map parsed, each field null → empty string fallback, int values → string |
+| `toJson` | Correct keys produced, `key` field excluded, round-trip with `boardFromMap` |
+| `copyWith` | No overrides = same values; partial overrides; original not mutated |
+| Equality (`==`) | Same key → equal; different key → not equal; null/type safety |
+| `hashCode` | Equal boards have same hash; usable as `Map` key |
+| `toString` | Contains key, name, voltage, current, power; non-empty for defaults |
+| Sensor edge cases | Zero strings, max values, non-numeric `'O'` bug artifact, int-typed values |
+| Email validator | Null, empty, missing `@`, missing TLD, valid formats, regex boundaries |
+| Password validator | Null, empty, 5-char fails, 6-char passes, long passwords |
+| Board list ops | Add, `firstWhere` with `orElse`, safe null return, update in-place, `Set` dedup |
+
+#### `test/setup/signin_test.dart` — Sign In Screen (5 groups, 15+ cases)
+
+| Group | What is tested |
+|-------|----------------|
+| AppBar & structure | Title "Sign in", Email-ID label, Password label, 2× TextFormField, RaisedButton |
+| Email validation | Empty → required error; no `@` → format error; missing domain → format error |
+| Password validation | < 6 chars → error; 6+ chars → no error |
+| Combined form | Both empty → both errors shown; no errors on initial render |
+| Loading state | No spinner on initial render; button text visible before loading |
+
+#### `test/setup/signup_test.dart` — Sign Up Screen (5 groups, 15+ cases)
+
+| Group | What is tested |
+|-------|----------------|
+| AppBar & structure | Title "Sign Up", labels, 2× TextFormField, RaisedButton |
+| **Bug fix verify** | Button says **"Sign Up"** not "Sign in" — confirms the label bug is fixed |
+| Email validation | Empty, missing `@`, missing TLD, valid email → no errors |
+| Password validation | < 6 chars → error; 6+ chars → passes; `obscureText = true` |
+| Combined & loading | Both empty → both errors; no errors on initial render; no spinner initially |
+
+#### `test/setup/welcome_page_test.dart` — Welcome Page (4 groups, 6 cases)
+
+| Group | What is tested |
+|-------|----------------|
+| AppBar | Title is "Home Ideator" |
+| Buttons | "Sign In" present, "SignUp" present, exactly 2 CupertinoButtons |
+| Navigation | Tap Sign In → navigates to Sign In screen; Tap SignUp → navigates to Sign Up screen |
+| Layout | Column layout present; no overflow errors on iPhone 375×812 |
+
+#### `test/pages/sensor_logic_test.dart` — Sensor & Rating Logic (7 groups, 40+ cases)
+
+| Group | What is tested |
+|-------|----------------|
+| `parsePercent` — null/empty | `null`, `''`, whitespace → `0.0` |
+| `parsePercent` — non-numeric | `'O'` (old bug), `'N/A'`, `'?'`, `'12abc'` → `0.0` (no crash) |
+| Voltage (max 240V) | 0V→0.0; 120V→0.5; 240V→1.0; 300V clamped→1.0; 220V, 230V typical |
+| Current (max 16A) | 0A→0.0; 8A→0.5; 16A→1.0; 20A clamped→1.0; 0.18A CFL, 0.5A fan |
+| Power (max 3840W) | 0W→0.0; 1920W→0.5; 3840W→1.0; 9W CFL, 75W fan, 1500W AC |
+| Generic boundaries | All results ∈ [0.0, 1.0]; 50% midpoints; default max=100; small positive |
+| `computeRating` | All 10 boundary conditions (mirrors Python tests, confirms `rating=2` bug fix) |
+
+#### `Rating Generator/code.py` — Python (1 suite, 10 cases)
+
+The Python rating generator has its own built-in test runner:
+
+```
+=== Running Rating Generator Tests ===
+
+  [PASS] 0 minutes  → 0 hrs → ≤23 branch → rating 1
+  [PASS] 1380 min   → 23 hrs → boundary, still rating 1
+  [PASS] 1440 min   → exactly 1 day → rating 2  ← was broken (rating == 2 bug)
+  [PASS] 2880 min   → 2 days → less than 90 days → rating 4
+  [PASS] 128160 min → 89 days → still <90 → rating 4
+  [PASS] 129600 min → 90 days → rating 8
+  [PASS] 263520 min → 183 days boundary → rating 8
+  [PASS] 264960 min → 184 days → rating 9
+  [PASS] 527040 min → 366 days (over 1 year) → rating 9
+
+Results: 10 passed, 0 failed out of 10 tests.
+```
+
+---
+
+### Running the Tests
+
+#### Run all Flutter tests
+
+```bash
+flutter test
+```
+
+#### Run a specific test file
+
+```bash
+# Board model unit tests
+flutter test test/model/board_test.dart
+
+# Sign In widget tests
+flutter test test/setup/signin_test.dart
+
+# Sign Up widget tests
+flutter test test/setup/signup_test.dart
+
+# Welcome Page widget tests
+flutter test test/setup/welcome_page_test.dart
+
+# Sensor gauge + rating logic unit tests
+flutter test test/pages/sensor_logic_test.dart
+```
+
+#### Run the Python rating generator tests
+
+```bash
+# Create a virtual environment (first time only)
+python3 -m venv venv
+source venv/bin/activate      # macOS / Linux
+venv\Scripts\activate         # Windows
+pip install pandas
+
+# Run the built-in test suite
+python3 "Rating Generator/code.py"
+```
+
+#### Run tests with verbose output
+
+```bash
+flutter test --reporter expanded
+```
+
+#### Run tests with coverage report
+
+```bash
+flutter test --coverage
+genhtml coverage/lcov.info -o coverage/html
+open coverage/html/index.html
+```
 
 ---
 
