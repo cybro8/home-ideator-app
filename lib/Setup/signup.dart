@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:home_ideator_app/Setup/signin.dart';
 import 'package:firebase_database/firebase_database.dart';
+
 class SignUp extends StatefulWidget {
   @override
   _SignUpState createState() => _SignUpState();
@@ -9,6 +10,7 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   String _email, _password;
+  bool _isLoading = false;
   final DBRef = FirebaseDatabase.instance.reference();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   @override
@@ -27,10 +29,12 @@ class _SignUpState extends State<SignUp> {
               width: 90.0,
               height:90.0,),
             TextFormField(
-              validator: (String input){
-                if(input.isEmpty){
-                  return 'Email id is invalid';
-                }
+              validator: (String input) {
+                // BUG FIX: Only checking isEmpty misses invalid email formats.
+                if (input == null || input.isEmpty) return 'Please enter your email.';
+                if (!RegExp(r'^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$').hasMatch(input))
+                  return 'Enter a valid email address.';
+                return null;
               },
               onSaved: (input) => _email = input,
               decoration: InputDecoration(
@@ -49,9 +53,15 @@ class _SignUpState extends State<SignUp> {
               ),
               obscureText: true,
             ),
+            // BUG FIX: Button label said 'Sign in' instead of 'Sign Up'.
             RaisedButton(
-              onPressed: signUp,
-              child: Text('Sign in'),
+              onPressed: _isLoading ? null : signUp,
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('Sign Up'),
             ),
           ],
         ),
@@ -59,24 +69,39 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
-  Future<void>signUp() async {
+  Future<void> signUp() async {
     final formState = _formKey.currentState;
-    if(formState.validate()){
+    if (formState.validate()) {
       formState.save();
-      try{
-        FirebaseUser user =  (await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _email, password: _password)).user;
-        user.sendEmailVerification();
-        Navigator.of(context).pop();
-        final uid = user.uid;
-        DBRef.child('$uid').child('Device1').set({
-          'Voltage':'O',
-          'Current':'O',
-          'Power':'0',
+      setState(() => _isLoading = true);
+      try {
+        final FirebaseUser user = (await FirebaseAuth.instance
+                .createUserWithEmailAndPassword(
+                    email: _email, password: _password))
+            .user;
+        await user.sendEmailVerification();
+        final String uid = user.uid;
+        // BUG FIX: Initial Voltage and Current values were 'O' (the letter)
+        // instead of '0' (zero). This caused display and parsing errors.
+        await DBRef.child('user').child(uid).child('Device1').set({
+          'Voltage': '0',
+          'Current': '0',
+          'Power': '0',
+          'Name': 'Device1',
+          'Website': '',
         });
-        debugPrint('$uid');
-        Navigator.push(context, MaterialPageRoute(builder: (context)=> LoginPage()));
-      }catch(e){
-        print(e.message);
+        debugPrint('Created user: $uid');
+        // BUG FIX: The original code called Navigator.pop() then push(), which
+        // would crash if the Sign Up page was the only route on the stack.
+        // Using pushReplacement navigates to LoginPage cleanly.
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => LoginPage()));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }

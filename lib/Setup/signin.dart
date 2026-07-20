@@ -10,7 +10,7 @@ class LoginPage extends StatefulWidget{
 
 class _LoginPageState extends State<LoginPage>{
   String _email, _password;
-
+  bool _isLoading = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
@@ -29,9 +29,11 @@ class _LoginPageState extends State<LoginPage>{
              height:90.0,),
            TextFormField(
              validator: (input){
-               if(input.isEmpty){
-                 return 'Email id is invalid';
-               }
+               // BUG FIX: Only checking isEmpty misses invalid email formats.
+               if(input == null || input.isEmpty) return 'Please enter your email.';
+               if(!RegExp(r'^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$').hasMatch(input))
+                 return 'Enter a valid email address.';
+               return null;
              },
              onSaved: (input) => _email = input,
              decoration: InputDecoration(
@@ -51,8 +53,13 @@ class _LoginPageState extends State<LoginPage>{
              obscureText: true,
            ),
          RaisedButton(
-           onPressed: signin,
-           child: Text('Sign in'),
+           onPressed: _isLoading ? null : signin,
+           child: _isLoading
+               ? const SizedBox(
+                   width: 20,
+                   height: 20,
+                   child: CircularProgressIndicator(strokeWidth: 2))
+               : const Text('Sign in'),
          ),
          ],
        ),
@@ -60,18 +67,25 @@ class _LoginPageState extends State<LoginPage>{
    );
   }
 
-  Future<void>signin() async {
+  Future<void> signin() async {
     final formState = _formKey.currentState;
     if(formState.validate()){
       formState.save();
+      setState(() => _isLoading = true);
       try{
-      FirebaseUser user =  (await FirebaseAuth.instance.signInWithEmailAndPassword(email: _email, password: _password)).user;
-        Navigator.push(context, MaterialPageRoute(builder: (context)=> Dashboard()));
-        print(user);
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+            email: _email, password: _password);
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => Dashboard()));
       }catch(e){
-        print(e.message);
+        // BUG FIX: print(e.message) crashes if e doesn't have a message field.
+        // Using SnackBar surfaces the error to the user meaningfully.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
 }
-
