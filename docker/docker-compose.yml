@@ -1,0 +1,113 @@
+services:
+  # ── Databases ──────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: hi_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - homeideator_net
+
+  mongodb:
+    image: mongo:7.0
+    container_name: hi_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - homeideator_net
+
+  # ── Backend Services ────────────────────────────────────────────────────
+  iot_service:
+    build:
+      context: ../backend/iot_service
+      dockerfile: Dockerfile
+    container_name: hi_iot_service
+    env_file: .env
+    expose:
+      - "8001"           # internal only — not exposed to host
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - homeideator_net
+    restart: unless-stopped
+
+  admin_service:
+    build:
+      context: ../backend/admin_service
+      dockerfile: Dockerfile
+    container_name: hi_admin_service
+    env_file: .env
+    ports:
+      - "8003:8003"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - homeideator_net
+    restart: unless-stopped
+
+  user_service:
+    build:
+      context: ../backend/user_service
+      dockerfile: Dockerfile
+    container_name: hi_user_service
+    env_file: .env
+    ports:
+      - "8002:8002"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - homeideator_net
+    restart: unless-stopped
+
+  # ── Angular Frontend ────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: hi_frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - admin_service
+    networks:
+      - homeideator_net
+    restart: unless-stopped
+
+# ── Volumes & Networks ──────────────────────────────────────────────────
+volumes:
+  mysql_data:
+  mongo_data:
+
+networks:
+  homeideator_net:
+    driver: bridge

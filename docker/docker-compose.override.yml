@@ -1,0 +1,37 @@
+# docker-compose.override.yml  — dev overrides (hot-reload, direct port access)
+# This file is merged automatically with docker-compose.yml when running
+# `docker compose up` locally.
+
+services:
+  iot_service:
+    build:
+      target: development
+    volumes:
+      - ./services/iot_service:/app
+    ports:
+      - "8001:8001"      # expose for dev testing
+    command: ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+
+  admin_service:
+    build:
+      target: development
+    volumes:
+      - ./services/admin_service:/app
+    command: ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8003", "--reload"]
+
+  user_service:
+    build:
+      target: development
+    volumes:
+      - ./services/user_service:/app
+    command: ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
+
+  frontend:
+    build:
+      target: development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "4200:4200"
+    command: ["ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000"]

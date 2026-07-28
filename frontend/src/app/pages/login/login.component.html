@@ -1,0 +1,25 @@
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="brand">
+      <span class="logo">⚡</span>
+      <h1>Home Ideator</h1>
+      <p class="subtitle">Admin Dashboard</p>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()" id="loginForm">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" placeholder="admin@homeideator.com" autocomplete="email"/>
+        <span class="err" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">Enter a valid email.</span>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password"/>
+        <span class="err" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">Min 6 characters.</span>
+      </div>
+      <div class="err global" *ngIf="error">{{ error }}</div>
+      <button id="loginSubmit" type="submit" [disabled]="loading">
+        {{ loading ? 'Signing in…' : 'Sign In' }}
+      </button>
+    </form>
+  </div>
+</div>

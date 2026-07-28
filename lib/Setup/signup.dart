@@ -1,7 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:home_ideator_app/Setup/signin.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:home_ideator_app/services/api_service.dart';
 
 class SignUp extends StatefulWidget {
   @override
@@ -11,8 +10,8 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   String _email, _password;
   bool _isLoading = false;
-  final DBRef = FirebaseDatabase.instance.reference();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,7 +29,6 @@ class _SignUpState extends State<SignUp> {
               height:90.0,),
             TextFormField(
               validator: (String input) {
-                // BUG FIX: Only checking isEmpty misses invalid email formats.
                 if (input == null || input.isEmpty) return 'Please enter your email.';
                 if (!RegExp(r'^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$').hasMatch(input))
                   return 'Enter a valid email address.';
@@ -46,6 +44,7 @@ class _SignUpState extends State<SignUp> {
                 if(input.length<6){
                   return 'Your password must be 6 character';
                 }
+                return null;
               },
               onSaved: (input) => _password = input,
               decoration: InputDecoration(
@@ -53,7 +52,6 @@ class _SignUpState extends State<SignUp> {
               ),
               obscureText: true,
             ),
-            // BUG FIX: Button label said 'Sign in' instead of 'Sign Up'.
             RaisedButton(
               onPressed: _isLoading ? null : signUp,
               child: _isLoading
@@ -75,30 +73,14 @@ class _SignUpState extends State<SignUp> {
       formState.save();
       setState(() => _isLoading = true);
       try {
-        final FirebaseUser user = (await FirebaseAuth.instance
-                .createUserWithEmailAndPassword(
-                    email: _email, password: _password))
-            .user;
-        await user.sendEmailVerification();
-        final String uid = user.uid;
-        // BUG FIX: Initial Voltage and Current values were 'O' (the letter)
-        // instead of '0' (zero). This caused display and parsing errors.
-        await DBRef.child('user').child(uid).child('Device1').set({
-          'Voltage': '0',
-          'Current': '0',
-          'Power': '0',
-          'Name': 'Device1',
-          'Website': '',
-        });
-        debugPrint('Created user: $uid');
-        // BUG FIX: The original code called Navigator.pop() then push(), which
-        // would crash if the Sign Up page was the only route on the stack.
-        // Using pushReplacement navigates to LoginPage cleanly.
+        final username = _email.split('@')[0];
+        await ApiService.register(username, _email, _password);
+        
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (_) => LoginPage()));
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
         );
       } finally {
         if (mounted) setState(() => _isLoading = false);

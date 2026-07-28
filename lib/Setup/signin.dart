@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:home_ideator_app/dashboard.dart';
+import 'package:home_ideator_app/services/api_service.dart';
 
 class LoginPage extends StatefulWidget{
   @override
   State<StatefulWidget> createState() => _LoginPageState();
-
 }
 
 class _LoginPageState extends State<LoginPage>{
   String _email, _password;
   bool _isLoading = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
    return Scaffold(
@@ -29,7 +29,6 @@ class _LoginPageState extends State<LoginPage>{
              height:90.0,),
            TextFormField(
              validator: (input){
-               // BUG FIX: Only checking isEmpty misses invalid email formats.
                if(input == null || input.isEmpty) return 'Please enter your email.';
                if(!RegExp(r'^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$').hasMatch(input))
                  return 'Enter a valid email address.';
@@ -45,6 +44,7 @@ class _LoginPageState extends State<LoginPage>{
                if(input.length<6){
                  return 'Your password must be 6 character';
                }
+               return null;
              },
              onSaved: (input) => _password = input,
              decoration: InputDecoration(
@@ -73,15 +73,12 @@ class _LoginPageState extends State<LoginPage>{
       formState.save();
       setState(() => _isLoading = true);
       try{
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
-            email: _email, password: _password);
+        await ApiService.login(_email, _password);
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: (_) => Dashboard()));
       }catch(e){
-        // BUG FIX: print(e.message) crashes if e doesn't have a message field.
-        // Using SnackBar surfaces the error to the user meaningfully.
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
         );
       } finally {
         if (mounted) setState(() => _isLoading = false);

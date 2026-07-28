@@ -1,5 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
-
 class Board {
   String key;
   String current;
@@ -8,27 +6,22 @@ class Board {
   String website;
   String name;
 
-  // BUG FIX 1: key was missing from the primary constructor — it was only set
-  // in fromSnapshot, leaving key == null for direct instantiation.
   Board(this.key, this.current, this.power, this.voltage, this.website, this.name);
 
-  // BUG FIX 2: snapshot values can be null when a Firebase node is incomplete.
-  // Added null-aware fallbacks (`?? ''`) to prevent null-dereference crashes at runtime.
-  Board.fromSnapshot(DataSnapshot snapshot)
-      : key = snapshot.key ?? '',
-        current = (snapshot.value['Current'] ?? '').toString(),
-        power = (snapshot.value['Power'] ?? '').toString(),
-        voltage = (snapshot.value['Voltage'] ?? '').toString(),
-        name = (snapshot.value['Name'] ?? '').toString(),
-        website = (snapshot.value['Website'] ?? '').toString();
+  Board.fromJson(Map<String, dynamic> json)
+      : key = json['device_id']?.toString() ?? '',
+        current = (json['Current'] ?? 0).toString(),
+        power = (json['Power'] ?? 0).toString(),
+        voltage = (json['Voltage'] ?? 0).toString(),
+        name = (json['device_name'] ?? '').toString(),
+        website = '';
 
-  Map&lt;String, dynamic&gt; toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'Current': current,
       'Power': power,
       'Voltage': voltage,
-      'Website': website,
-      'Name': name,
+      'device_name': name,
     };
   }
 

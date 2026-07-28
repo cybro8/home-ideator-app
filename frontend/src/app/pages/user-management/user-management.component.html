@@ -1,0 +1,21 @@
+<app-sidebar></app-sidebar>
+<div class="page">
+  <div class="header"><h2 id="userMgmtTitle">End User Management</h2>
+    <input id="userSearch" [(ngModel)]="search" placeholder="Search…" (input)="loadUsers()"/>
+  </div>
+  <div *ngIf="loading" class="loader">Loading…</div>
+  <table *ngIf="!loading" id="userTable">
+    <thead><tr><th>Username</th><th>Email</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+    <tbody>
+      <tr *ngFor="let u of users">
+        <td>{{u.username}}</td><td>{{u.email}}</td>
+        <td><span class="status" [class.active]="u.is_active">{{u.is_active?'Active':'Disabled'}}</span></td>
+        <td>{{u.created_at | date:'mediumDate'}}</td>
+        <td class="actions">
+          <button id="toggleUser-{{u.uid}}" (click)="toggleStatus(u)">{{u.is_active?'Disable':'Enable'}}</button>
+          <button id="deleteUser-{{u.uid}}" class="danger" (click)="deleteUser(u.uid)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

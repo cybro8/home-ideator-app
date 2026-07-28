@@ -1,0 +1,10 @@
+<nav class="sidebar" id="sidebar">
+  <div class="brand"><span>⚡</span> Home Ideator</div>
+  <ul>
+    <li *ngIf="auth.hasRole('admin','end_user_admin')"><a id="navUsers" routerLink="/admin/users" routerLinkActive="active">👥 End Users</a></li>
+    <li *ngIf="auth.hasRole('admin')"><a id="navAccounts" routerLink="/admin/accounts" routerLinkActive="active">🔐 Admin Accounts</a></li>
+    <li *ngIf="auth.hasRole('admin','ml_user')"><a id="navDevices" routerLink="/admin/devices" routerLinkActive="active">📡 Device Data</a></li>
+  </ul>
+  <div class="role-badge">{{auth.getRole()}}</div>
+  <button id="logoutBtn" (click)="logout()">Sign Out</button>
+</nav>

@@ -1,0 +1,37 @@
+<app-sidebar></app-sidebar>
+<div class="page">
+  <div class="header"><h2 id="adminMgmtTitle">Admin Accounts</h2><button id="createAdminBtn" (click)="showModal=true">+ New Admin</button></div>
+  <div *ngIf="loading" class="loader">Loading…</div>
+  <table *ngIf="!loading" id="adminTable">
+    <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+      <tr *ngFor="let a of admins">
+        <td>{{a.username}}</td><td>{{a.email}}</td>
+        <td><span class="badge role-{{a.role}}">{{a.role}}</span></td>
+        <td><span class="status" [class.active]="a.is_active">{{a.is_active?'Active':'Disabled'}}</span></td>
+        <td class="actions">
+          <button id="toggleAdmin-{{a.id}}" (click)="toggleStatus(a)">{{a.is_active?'Disable':'Enable'}}</button>
+          <button id="deleteAdmin-{{a.id}}" class="danger" (click)="deleteAdmin(a.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="showModal" class="modal-backdrop">
+    <div class="modal" id="createAdminModal">
+      <h3>Create Admin Account</h3>
+      <div *ngIf="error" class="err">{{error}}</div>
+      <input id="newAdminUsername" [(ngModel)]="newAdmin.username" placeholder="Username"/>
+      <input id="newAdminEmail" [(ngModel)]="newAdmin.email" placeholder="Email" type="email"/>
+      <input id="newAdminPassword" [(ngModel)]="newAdmin.password" placeholder="Password" type="password"/>
+      <select id="newAdminRole" [(ngModel)]="newAdmin.role">
+        <option value="admin">admin</option>
+        <option value="end_user_admin">end_user_admin</option>
+        <option value="ml_user">ml_user</option>
+      </select>
+      <div class="modal-actions">
+        <button id="cancelCreateAdmin" (click)="showModal=false">Cancel</button>
+        <button id="submitCreateAdmin" (click)="createAdmin()">Create</button>
+      </div>
+    </div>
+  </div>
+</div>

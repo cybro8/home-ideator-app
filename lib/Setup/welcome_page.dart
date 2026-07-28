@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:home_ideator_app/Setup/signin.dart';
 import 'package:home_ideator_app/Setup/signup.dart';
 
+import 'package:home_ideator_app/dashboard.dart';
+import 'package:home_ideator_app/services/auth_state.dart';
 
 class WelcomePage extends StatefulWidget {
   @override
@@ -10,6 +12,20 @@ class WelcomePage extends StatefulWidget {
 }
 
 class _WelcomePageState extends State<WelcomePage> {
+  @override
+  void initState() {
+    super.initState();
+    _checkLogin();
+  }
+
+  Future<void> _checkLogin() async {
+    final loggedIn = await AuthState.isLoggedIn();
+    if (loggedIn) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => Dashboard()));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

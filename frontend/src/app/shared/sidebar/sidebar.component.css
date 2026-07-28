@@ -1,0 +1,8 @@
+.sidebar{width:220px;min-height:100vh;background:linear-gradient(180deg,#0f0c29,#302b63);position:fixed;left:0;top:0;display:flex;flex-direction:column;padding:24px 0;color:#fff;}
+.brand{padding:0 20px 24px;font-size:16px;font-weight:700;border-bottom:1px solid rgba(255,255,255,.1);}
+ul{list-style:none;margin:16px 0;padding:0;flex:1;}
+li a{display:block;padding:12px 20px;color:rgba(255,255,255,.7);text-decoration:none;font-size:14px;transition:all .2s;}
+li a:hover,li a.active{background:rgba(108,99,255,.3);color:#fff;}
+.role-badge{margin:0 20px 12px;padding:4px 10px;border-radius:20px;background:rgba(108,99,255,.4);font-size:11px;text-align:center;}
+button{margin:0 16px;padding:10px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-size:13px;}
+button:hover{background:rgba(255,107,107,.2);color:#ff6b6b;}

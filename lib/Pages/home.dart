@@ -1,21 +1,15 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_database/ui/firebase_animated_list.dart';
+import 'dart:async';
 import 'package:home_ideator_app/model/board.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-// BUG FIX 1: Removed the erroneous top-level `void main()` that would
-// re-run the app as a standalone widget when this file was imported.
-// Home is used as a tab widget inside Dashboard — it must NOT be a full app.
+import 'package:home_ideator_app/services/api_service.dart';
+import 'package:home_ideator_app/services/auth_state.dart';
+import 'package:home_ideator_app/Setup/signin.dart';
 
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // BUG FIX 2: Removed nested MaterialApp. Wrapping a tab widget in another
-    // MaterialApp breaks navigation (Navigator.of(context) becomes a new,
-    // isolated navigator that cannot pop back to the parent route tree).
     return MyHomePage();
   }
 }
@@ -25,44 +19,40 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State&lt;MyHomePage&gt; {
-  List&lt;Board&gt; boardMessages = [];
-  Board board;
-  final FirebaseDatabase database = FirebaseDatabase.instance;
-  final GlobalKey&lt;FormState&gt; formKey = GlobalKey&lt;FormState&gt;();
-  DatabaseReference databaseReference;
+class _MyHomePageState extends State<MyHomePage> {
+  List<Board> boardMessages = [];
   bool _loading = true;
   String _error;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  Timer _pollingTimer;
 
   @override
   void initState() {
     super.initState();
-    // BUG FIX 3: Board primary constructor now requires key as first argument.
-    board = Board('', '', '', '', '', '');
-    _inputData();
+    _initData();
   }
 
-  Future&lt;void&gt; _inputData() async {
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initData() async {
     try {
-      final FirebaseUser user = await _auth.currentUser();
-      if (user == null) {
-        setState(() {
-          _error = 'No user signed in.';
-          _loading = false;
-        });
+      final isLoggedIn = await AuthState.isLoggedIn();
+      if (!isLoggedIn) {
+        if (mounted) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => LoginPage()));
+        }
         return;
       }
-      final String uid = user.uid;
-      databaseReference =
-          database.reference().child('user').child(uid);
-      databaseReference.onChildAdded.listen(_onEntryAdded);
-      databaseReference.onChildChanged.listen(_onEntryChanged);
+      await _fetchDevices();
+      _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        _pollDeviceData();
+      });
       setState(() => _loading = false);
     } catch (e) {
-      // BUG FIX 4: `e.print("Fine")` is not a valid Dart method on Exception.
-      // Replaced with `print(e.toString())` and stored the error for the UI.
-      print(e.toString());
       setState(() {
         _error = e.toString();
         _loading = false;
@@ -70,24 +60,35 @@ class _MyHomePageState extends State&lt;MyHomePage&gt; {
     }
   }
 
-  // BUG FIX 5: `_onEntryChanged` would throw a StateError if the key was not
-  // found (singleWhere throws when no element matches). Added orElse guard.
-  void _onEntryAdded(Event event) {
+  Future<void> _fetchDevices() async {
+    final devices = await ApiService.getMyDevices();
+    List<Board> initialBoards = [];
+    for (var device in devices) {
+      initialBoards.add(Board.fromJson(device));
+    }
     setState(() {
-      boardMessages.add(Board.fromSnapshot(event.snapshot));
+      boardMessages = initialBoards;
     });
+    await _pollDeviceData();
   }
 
-  void _onEntryChanged(Event event) {
-    final Board oldEntry = boardMessages.firstWhere(
-      (entry) =&gt; entry.key == event.snapshot.key,
-      orElse: () =&gt; null,
-    );
-    if (oldEntry == null) return;
-    setState(() {
-      boardMessages[boardMessages.indexOf(oldEntry)] =
-          Board.fromSnapshot(event.snapshot);
-    });
+  Future<void> _pollDeviceData() async {
+    if (boardMessages.isEmpty) return;
+    for (int i = 0; i < boardMessages.length; i++) {
+      try {
+        final data = await ApiService.getDeviceData(boardMessages[i].key, limit: 1);
+        if (data.isNotEmpty) {
+          final reading = data[0];
+          setState(() {
+            final merged = Map<String, dynamic>.from(reading);
+            merged['device_name'] = boardMessages[i].name;
+            boardMessages[i] = Board.fromJson(merged);
+          });
+        }
+      } catch (e) {
+        print('Error polling device ${boardMessages[i].key}: $e');
+      }
+    }
   }
 
   @override
@@ -104,26 +105,20 @@ class _MyHomePageState extends State&lt;MyHomePage&gt; {
         ),
       );
     }
-    if (databaseReference == null) {
-      return const Center(child: Text('No data reference available.'));
+    if (boardMessages.isEmpty) {
+      return const Center(child: Text('No devices found.'));
     }
 
     return Scaffold(
       body: Column(
-        children: &lt;Widget&gt;[
+        children: <Widget>[
           const SizedBox(height: 20),
           Flexible(
-            child: FirebaseAnimatedList(
-              query: databaseReference,
-              itemBuilder: (_, DataSnapshot snapshot,
-                  Animation&lt;double&gt; animation, int index) {
-                final Board item = boardMessages.length &gt; index
-                    ? boardMessages[index]
-                    : Board.fromSnapshot(snapshot);
+            child: ListView.builder(
+              itemCount: boardMessages.length,
+              itemBuilder: (_, int index) {
+                final Board item = boardMessages[index];
 
-                // BUG FIX 6: The percent values for the circular indicators
-                // were hardcoded (0.25, 0.5, 0.01). They must be clamped 0–1
-                // and derived from the actual sensor readings.
                 final double voltagePercent =
                     _parsePercent(item.voltage, maxValue: 240);
                 final double currentPercent =
@@ -141,7 +136,7 @@ class _MyHomePageState extends State&lt;MyHomePage&gt; {
                     padding: const EdgeInsets.all(12.0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: &lt;Widget&gt;[
+                      children: <Widget>[
                         Text(
                           item.name,
                           style: const TextStyle(
@@ -151,7 +146,7 @@ class _MyHomePageState extends State&lt;MyHomePage&gt; {
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: &lt;Widget&gt;[
+                          children: <Widget>[
                             CircularPercentIndicator(
                               radius: 70.0,
                               lineWidth: 7.0,
@@ -194,19 +189,11 @@ class _MyHomePageState extends State&lt;MyHomePage&gt; {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            // BUG FIX 7: url_launcher `launch()` is deprecated.
-                            // Replaced with canLaunch guard + launch pattern
-                            // to avoid unchecked URL opens.
-                            onPressed: () async {
-                              final String url = item.website;
-                              if (await canLaunch(url)) {
-                                await launch(url);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Could not open link.')),
-                                );
-                              }
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Go to Shop to find replacements!')),
+                              );
                             },
                             child: const Text('Replace Component'),
                           ),
@@ -223,11 +210,9 @@ class _MyHomePageState extends State&lt;MyHomePage&gt; {
     );
   }
 
-  /// Parses a numeric string and returns a fraction clamped to [0.0, 1.0].
   double _parsePercent(String value, {double maxValue = 100}) {
     if (value == null || value.isEmpty) return 0.0;
     final double parsed = double.tryParse(value) ?? 0.0;
     return (parsed / maxValue).clamp(0.0, 1.0);
   }
 }
-

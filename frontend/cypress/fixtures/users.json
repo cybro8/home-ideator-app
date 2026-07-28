@@ -1,0 +1,5 @@
+{
+  "admin":        { "email": "admin@homeideator.com",   "password": "Admin@1234", "role": "admin" },
+  "end_user_admin": { "email": "euadmin@homeideator.com", "password": "Admin@1234", "role": "end_user_admin" },
+  "ml_user":      { "email": "mluser@homeideator.com",  "password": "Admin@1234", "role": "ml_user" }
+}
