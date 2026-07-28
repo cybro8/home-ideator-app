@@ -10,6 +10,7 @@ class LoginPage extends StatefulWidget{
 class _LoginPageState extends State<LoginPage>{
   String _email, _password;
   bool _isLoading = false;
+  bool _obscureText = true;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -48,9 +49,19 @@ class _LoginPageState extends State<LoginPage>{
              },
              onSaved: (input) => _password = input,
              decoration: InputDecoration(
-                 labelText: 'Password'
+                 labelText: 'Password',
+                 suffixIcon: IconButton(
+                   icon: Icon(
+                     _obscureText ? Icons.visibility : Icons.visibility_off,
+                   ),
+                   onPressed: () {
+                     setState(() {
+                       _obscureText = !_obscureText;
+                     });
+                   },
+                 ),
              ),
-             obscureText: true,
+             obscureText: _obscureText,
            ),
          RaisedButton(
            onPressed: _isLoading ? null : signin,

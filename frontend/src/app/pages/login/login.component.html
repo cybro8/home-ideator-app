@@ -11,9 +11,14 @@
         <input id="email" type="email" formControlName="email" placeholder="admin@homeideator.com" autocomplete="email"/>
         <span class="err" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">Enter a valid email.</span>
       </div>
-      <div class="field">
+      <div class="field password-field">
         <label for="password">Password</label>
-        <input id="password" type="password" formControlName="password" placeholder="••••••••" autocomplete="current-password"/>
+        <div class="input-wrapper">
+          <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" autocomplete="current-password"/>
+          <button type="button" class="toggle-password" (click)="showPassword = !showPassword">
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
         <span class="err" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">Min 6 characters.</span>
       </div>
       <div class="err global" *ngIf="error">{{ error }}</div>

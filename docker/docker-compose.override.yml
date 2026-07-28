@@ -7,7 +7,7 @@ services:
     build:
       target: development
     volumes:
-      - ./services/iot_service:/app
+      - ../backend/iot_service:/app
     ports:
       - "8001:8001"      # expose for dev testing
     command: ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
@@ -16,22 +16,23 @@ services:
     build:
       target: development
     volumes:
-      - ./services/admin_service:/app
+      - ../backend/admin_service:/app
     command: ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8003", "--reload"]
 
   user_service:
     build:
       target: development
     volumes:
-      - ./services/user_service:/app
+      - ../backend/user_service:/app
     command: ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002", "--reload"]
 
   frontend:
     build:
       target: development
     volumes:
-      - ./frontend:/app
+      - ../frontend:/app
       - /app/node_modules
     ports:
-      - "4200:4200"
-    command: ["ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000"]
+      - "4205:4200"
+    command: ["npx", "ng", "serve", "--host", "0.0.0.0", "--port", "4200", "--poll", "2000"]
+

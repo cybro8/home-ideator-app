@@ -6,10 +6,10 @@ FROM base AS development
 COPY pyproject.toml .
 RUN uv sync --all-groups
 COPY . .
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD [".venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
 
 FROM base AS production
 COPY pyproject.toml .
 RUN uv sync --no-dev
 COPY . .
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "2"]
+CMD [".venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "2"]
