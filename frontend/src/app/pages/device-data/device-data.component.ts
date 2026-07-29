@@ -11,6 +11,13 @@ export class DeviceDataComponent implements OnInit, OnDestroy {
   userGroups: { user_name: string, devices: any[] }[] = [];
   loading = false;
   liveRefresh = false;
+  
+  // Download panel state
+  isDownloadPanelOpen = false;
+  downloadUserUid = '';
+  downloadDeviceId = 'all';
+  downloadFormat = 'csv';
+
   private refreshInterval: any;
 
   // Stats
@@ -69,57 +76,54 @@ export class DeviceDataComponent implements OnInit, OnDestroy {
       });
   }
 
-  downloadCsv(): void {
-    if (!this.deviceId) return;
-    this.api.downloadCsv(this.deviceId, this.from || undefined, this.to || undefined).subscribe((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${this.deviceId}_data.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    });
+  // Download panel logic
+  openDownloadPanel(): void {
+    this.isDownloadPanelOpen = true;
+    if (this.userGroups.length) {
+      this.downloadUserUid = this.userGroups[0].devices[0].user_uid;
+      this.downloadDeviceId = 'all';
+    }
   }
 
-  downloadExcel(): void {
-    if (!this.deviceId) return;
-    this.api.downloadExcel(this.deviceId, this.from || undefined, this.to || undefined).subscribe((blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${this.deviceId}_data.xlsx`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-    });
+  closeDownloadPanel(): void {
+    this.isDownloadPanelOpen = false;
   }
 
-  downloadUserCsv(): void {
-    if (!this.deviceId) return;
-    // Find the user_uid for the selected device
-    let userUid = '';
-    for (const group of this.userGroups) {
-      const device = group.devices.find(d => d.device_id === this.deviceId);
-      if (device) {
-        userUid = device.user_uid;
-        break;
+  getDownloadDevicesForUser(): any[] {
+    const group = this.userGroups.find(g => g.devices.some(d => d.user_uid === this.downloadUserUid));
+    return group ? group.devices : [];
+  }
+
+  executeDownload(): void {
+    if (!this.downloadUserUid) return;
+
+    if (this.downloadDeviceId === 'all') {
+      if (this.downloadFormat === 'csv') {
+        this.api.downloadUserCsv(this.downloadUserUid, this.from || undefined, this.to || undefined).subscribe(this.handleBlob(`user_${this.downloadUserUid}_all_devices_data.csv`));
+      } else {
+        this.api.downloadUserExcel(this.downloadUserUid, this.from || undefined, this.to || undefined).subscribe(this.handleBlob(`user_${this.downloadUserUid}_all_devices_data.xlsx`));
+      }
+    } else {
+      if (this.downloadFormat === 'csv') {
+        this.api.downloadCsv(this.downloadDeviceId, this.from || undefined, this.to || undefined).subscribe(this.handleBlob(`${this.downloadDeviceId}_data.csv`));
+      } else {
+        this.api.downloadExcel(this.downloadDeviceId, this.from || undefined, this.to || undefined).subscribe(this.handleBlob(`${this.downloadDeviceId}_data.xlsx`));
       }
     }
-    if (!userUid) return;
+    this.closeDownloadPanel();
+  }
 
-    this.api.downloadUserCsv(userUid, this.from || undefined, this.to || undefined).subscribe((blob) => {
+  private handleBlob(filename: string): (blob: Blob) => void {
+    return (blob: Blob) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `user_${userUid}_all_devices_data.csv`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       a.remove();
-    });
+    };
   }
 
   toggleLive(): void {

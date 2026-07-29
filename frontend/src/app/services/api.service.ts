@@ -132,4 +132,15 @@ export class ApiService {
       responseType: 'blob'
     }).pipe(catchError((e) => this.handleError(e)));
   }
+
+  downloadUserExcel(uid: string, from?: string, to?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    return this.http.get(`${this.baseUrl}/users/${uid}/data/excel`, {
+      headers: this.headers,
+      params,
+      responseType: 'blob'
+    }).pipe(catchError((e) => this.handleError(e)));
+  }
 }

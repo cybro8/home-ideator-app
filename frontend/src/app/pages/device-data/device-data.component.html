@@ -17,9 +17,7 @@
     <input id="fromInput" [(ngModel)]="from" type="datetime-local" title="From"/>
     <input id="toInput"   [(ngModel)]="to"   type="datetime-local" title="To"/>
     <button id="loadDataBtn" (click)="load()">Load</button>
-    <button id="downloadCsvBtn"   (click)="downloadCsv()"   [disabled]="!deviceId">Device CSV</button>
-    <button id="downloadExcelBtn" (click)="downloadExcel()" [disabled]="!deviceId">Device Excel</button>
-    <button id="downloadUserCsvBtn" (click)="downloadUserCsv()" [disabled]="!deviceId" class="user-csv-btn">User CSV</button>
+    <button id="downloadBtn" (click)="openDownloadPanel()">Download</button>
     <button id="liveRefreshBtn" (click)="toggleLive()" [class.live-active]="liveRefresh">
       {{ liveRefresh ? 'Stop Live' : 'Live' }}
     </button>
@@ -97,5 +95,50 @@
       </svg>
     </div>
     <p>No readings found for <strong>{{deviceId}}</strong> in the selected time range.</p>
+  </div>
+</div>
+
+<!-- Download Side Panel -->
+<div class="side-panel-overlay" *ngIf="isDownloadPanelOpen" (click)="closeDownloadPanel()">
+  <div class="side-panel" (click)="$event.stopPropagation()">
+    <div class="panel-header">
+      <h3>Download Options</h3>
+      <button class="close-btn" (click)="closeDownloadPanel()">×</button>
+    </div>
+    
+    <div class="panel-body">
+      <div class="field">
+        <label>User</label>
+        <select [(ngModel)]="downloadUserUid" (change)="downloadDeviceId = 'all'">
+          <option *ngFor="let g of userGroups" [value]="g.devices[0].user_uid">
+            {{ g.user_name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="field" *ngIf="downloadUserUid">
+        <label>Device</label>
+        <select [(ngModel)]="downloadDeviceId">
+          <option value="all">All Devices (for this user)</option>
+          <option *ngFor="let d of getDownloadDevicesForUser()" [value]="d.device_id">
+            {{ d.device_name || 'Unknown' }} ({{ d.device_type }})
+          </option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Format</label>
+        <select [(ngModel)]="downloadFormat">
+          <option value="csv">CSV</option>
+          <option value="excel">Excel</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="panel-footer">
+      <button class="download-submit-btn" (click)="executeDownload()" [disabled]="!downloadUserUid || !downloadDeviceId">
+        Download
+      </button>
+    </div>
   </div>
 </div>

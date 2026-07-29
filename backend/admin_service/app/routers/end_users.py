@@ -1,6 +1,7 @@
 import uuid
 import csv
 import io
+import openpyxl
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -197,5 +198,51 @@ async def get_user_data_csv(
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@router.get("/{uid}/data/excel")
+async def get_user_data_excel(
+    uid: str,
+    from_ts: datetime | None = Query(None, alias="from"),
+    to_ts: datetime | None = Query(None, alias="to"),
+    current: dict = Depends(eu_admin_access),
+):
+    from app.db.connections import get_mongo_db
+    db = await get_mongo_db()
+    query: dict = {"user_uid": uid}
+    if from_ts or to_ts:
+        ts_filter: dict = {}
+        if from_ts:
+            ts_filter["$gte"] = from_ts.isoformat()
+        if to_ts:
+            ts_filter["$lte"] = to_ts.isoformat()
+        query["timestamp"] = ts_filter
+
+    docs = await db.device_readings.find(query).sort("timestamp", -1).to_list(length=10000)
+    
+    READING_FIELDS = ["device_id", "user_uid", "device_name", "device_type",
+                      "timestamp", "Voltage", "Current", "Power", "temperature_C",
+                      "status", "anomaly_type", "is_anomaly", "fault_score"]
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"User {uid} Readings"
+    ws.append(READING_FIELDS)
+    
+    for doc in docs:
+        readings = doc.pop("readings", {})
+        doc.update(readings)
+        doc.pop("_id", None)
+        ws.append([doc.get(f) for f in READING_FIELDS])
+        
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    filename = f"user_{uid}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(
+        iter([output.read()]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
