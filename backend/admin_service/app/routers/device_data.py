@@ -14,6 +14,13 @@ READING_FIELDS = ["device_id", "user_uid", "device_name", "device_type",
                   "status", "anomaly_type", "is_anomaly", "fault_score"]
 
 
+@router.get("", summary="List all distinct device IDs")
+async def list_devices(current: dict = Depends(data_access)):
+    db = await get_mongo_db()
+    device_ids = await db.device_readings.distinct("device_id")
+    return sorted(device_ids)
+
+
 def _flatten(doc: dict) -> dict:
     readings = doc.pop("readings", {})
     doc.update(readings)

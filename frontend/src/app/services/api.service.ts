@@ -82,6 +82,11 @@ export class ApiService {
   }
 
   // ── Device Data ──────────────────────────────────────────────────────
+  getDeviceList(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/devices`, { headers: this.headers })
+      .pipe(catchError((e) => this.handleError(e)));
+  }
+
   getDeviceData(deviceId: string, limit = 100, from?: string, to?: string): Observable<any[]> {
     let params = new HttpParams().set('limit', limit);
     if (from) params = params.set('from', from);

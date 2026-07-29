@@ -1,18 +1,20 @@
 <!-- Overlay (mobile only) -->
 <div class="overlay" [class.visible]="!isCollapsed" (click)="toggle()"></div>
 
-<!-- Hamburger toggle button (always visible) -->
-<button class="hamburger" id="hamburgerBtn" (click)="toggle()" [attr.aria-expanded]="!isCollapsed">
-  <span></span>
-  <span></span>
-  <span></span>
-</button>
-
 <!-- Sidebar -->
 <nav class="sidebar" [class.collapsed]="isCollapsed" id="sidebar">
+
+  <!-- Brand row: icon + title + hamburger -->
   <div class="brand">
     <span class="brand-icon">⚡</span>
     <span class="brand-text">Home Ideator</span>
+    <button class="hamburger" id="hamburgerBtn" (click)="toggle()" title="Toggle menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
   </div>
 
   <ul>
