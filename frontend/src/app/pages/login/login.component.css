@@ -1,6 +1,6 @@
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);}
 .login-card{background:rgba(255,255,255,.07);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.4);}
-.brand{text-align:center;margin-bottom:32px;}.logo{font-size:40px;}
+.brand{text-align:center;margin-bottom:32px;}.logo{width:64px;height:64px;object-fit:contain;margin-bottom:8px;}
 h1{color:#fff;font-size:22px;margin:8px 0 4px;}
 .subtitle{color:rgba(255,255,255,.5);font-size:13px;}
 .field{margin-bottom:18px;display:flex;flex-direction:column;gap:6px;}
