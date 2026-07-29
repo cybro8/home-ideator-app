@@ -1,10 +1,47 @@
-<nav class="sidebar" id="sidebar">
-  <div class="brand"><span>⚡</span> Home Ideator</div>
+<!-- Overlay (mobile only) -->
+<div class="overlay" [class.visible]="!isCollapsed" (click)="toggle()"></div>
+
+<!-- Hamburger toggle button (always visible) -->
+<button class="hamburger" id="hamburgerBtn" (click)="toggle()" [attr.aria-expanded]="!isCollapsed">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- Sidebar -->
+<nav class="sidebar" [class.collapsed]="isCollapsed" id="sidebar">
+  <div class="brand">
+    <span class="brand-icon">⚡</span>
+    <span class="brand-text">Home Ideator</span>
+  </div>
+
   <ul>
-    <li *ngIf="auth.hasRole('admin','end_user_admin')"><a id="navUsers" routerLink="/admin/users" routerLinkActive="active">👥 End Users</a></li>
-    <li *ngIf="auth.hasRole('admin')"><a id="navAccounts" routerLink="/admin/accounts" routerLinkActive="active">🔐 Admin Accounts</a></li>
-    <li *ngIf="auth.hasRole('admin','ml_user')"><a id="navDevices" routerLink="/admin/devices" routerLinkActive="active">📡 Device Data</a></li>
+    <li *ngIf="auth.hasRole('admin','end_user_admin')">
+      <a id="navUsers" routerLink="/admin/users" routerLinkActive="active" (click)="onNavClick()">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">End Users</span>
+      </a>
+    </li>
+    <li *ngIf="auth.hasRole('admin')">
+      <a id="navAccounts" routerLink="/admin/accounts" routerLinkActive="active" (click)="onNavClick()">
+        <span class="nav-icon">🔐</span>
+        <span class="nav-label">Admin Accounts</span>
+      </a>
+    </li>
+    <li *ngIf="auth.hasRole('admin','ml_user')">
+      <a id="navDevices" routerLink="/admin/devices" routerLinkActive="active" (click)="onNavClick()">
+        <span class="nav-icon">📡</span>
+        <span class="nav-label">Device Data</span>
+      </a>
+    </li>
   </ul>
-  <div class="role-badge">{{auth.getRole()}}</div>
-  <button id="logoutBtn" (click)="logout()">Sign Out</button>
+
+  <div class="role-badge">
+    <span class="nav-icon">🛡️</span>
+    <span class="nav-label">{{auth.getRole()}}</span>
+  </div>
+  <button id="logoutBtn" (click)="logout()">
+    <span class="nav-icon">🚪</span>
+    <span class="nav-label">Sign Out</span>
+  </button>
 </nav>

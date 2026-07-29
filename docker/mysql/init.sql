@@ -66,17 +66,17 @@ CREATE TABLE IF NOT EXISTS user_devices (
 -- bcrypt hash of "Admin@1234"
 INSERT IGNORE INTO admin_users (username, email, password_hash, role) VALUES
   ('superadmin', 'admin@homeideator.com',
-   '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGpFMD9TjEu2lKq5KMEcV9yEXH2', 'admin');
+   '$2b$12$NsvRS2B5IzUUWNRuW2rJz.5qpaS0l7YDEK.9bzVOCMcXc.i1oYU.e', 'admin');
 
 -- ── Seed: end_user_admin (password = Admin@1234) ─────────────────────
 INSERT IGNORE INTO admin_users (username, email, password_hash, role) VALUES
   ('euadmin', 'euadmin@homeideator.com',
-   '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGpFMD9TjEu2lKq5KMEcV9yEXH2', 'end_user_admin');
+   '$2b$12$NsvRS2B5IzUUWNRuW2rJz.5qpaS0l7YDEK.9bzVOCMcXc.i1oYU.e', 'end_user_admin');
 
 -- ── Seed: ml_user (password = Admin@1234) ────────────────────────────
 INSERT IGNORE INTO admin_users (username, email, password_hash, role) VALUES
   ('mluser', 'mluser@homeideator.com',
-   '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGpFMD9TjEu2lKq5KMEcV9yEXH2', 'ml_user');
+   '$2b$12$NsvRS2B5IzUUWNRuW2rJz.5qpaS0l7YDEK.9bzVOCMcXc.i1oYU.e', 'ml_user');
 
 -- ════════════════════════════════════════════════════════════════════
 -- Mirror schema into test database
@@ -135,6 +135,6 @@ CREATE TABLE IF NOT EXISTS user_devices (
 
 -- Seed test admins (same hashes)
 INSERT IGNORE INTO admin_users (username, email, password_hash, role) VALUES
-  ('admin_test',   'admin@test.com',   '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGpFMD9TjEu2lKq5KMEcV9yEXH2', 'admin'),
-  ('euadmin_test', 'euadmin@test.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGpFMD9TjEu2lKq5KMEcV9yEXH2', 'end_user_admin'),
-  ('mluser_test',  'mluser@test.com',  '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TiGpFMD9TjEu2lKq5KMEcV9yEXH2', 'ml_user');
+  ('admin_test',   'admin@test.com',   '$2b$12$NsvRS2B5IzUUWNRuW2rJz.5qpaS0l7YDEK.9bzVOCMcXc.i1oYU.e', 'admin'),
+  ('euadmin_test', 'euadmin@test.com', '$2b$12$NsvRS2B5IzUUWNRuW2rJz.5qpaS0l7YDEK.9bzVOCMcXc.i1oYU.e', 'end_user_admin'),
+  ('mluser_test',  'mluser@test.com',  '$2b$12$NsvRS2B5IzUUWNRuW2rJz.5qpaS0l7YDEK.9bzVOCMcXc.i1oYU.e', 'ml_user');

@@ -1,7 +1,7 @@
 // MongoDB initialisation script
 // Creates indexes for the device_readings collection in both prod and test DBs.
 
-['home_ideator', 'home_ideator_test'].forEach(function(dbName) {
+['home_ideator', 'home_ideator_test'].forEach(function (dbName) {
   var targetDb = db.getSiblingDB(dbName);
 
   targetDb.createCollection('device_readings');
