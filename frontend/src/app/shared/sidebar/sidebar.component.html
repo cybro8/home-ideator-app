@@ -4,9 +4,12 @@
 <!-- Sidebar -->
 <nav class="sidebar" [class.collapsed]="isCollapsed" id="sidebar">
 
-  <!-- Brand row: icon + title + hamburger -->
+  <!-- Brand row -->
   <div class="brand">
-    <span class="brand-icon">⚡</span>
+    <!-- Lightning bolt icon -->
+    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
     <span class="brand-text">Home Ideator</span>
     <button class="hamburger" id="hamburgerBtn" (click)="toggle()" title="Toggle menu">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -20,30 +23,52 @@
   <ul>
     <li *ngIf="auth.hasRole('admin','end_user_admin')">
       <a id="navUsers" routerLink="/admin/users" routerLinkActive="active" (click)="onNavClick()">
-        <span class="nav-icon">👥</span>
+        <!-- Users icon -->
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
         <span class="nav-label">End Users</span>
       </a>
     </li>
     <li *ngIf="auth.hasRole('admin')">
       <a id="navAccounts" routerLink="/admin/accounts" routerLinkActive="active" (click)="onNavClick()">
-        <span class="nav-icon">🔐</span>
+        <!-- Shield icon -->
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
         <span class="nav-label">Admin Accounts</span>
       </a>
     </li>
     <li *ngIf="auth.hasRole('admin','ml_user')">
       <a id="navDevices" routerLink="/admin/devices" routerLinkActive="active" (click)="onNavClick()">
-        <span class="nav-icon">📡</span>
+        <!-- Activity/signal icon -->
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
         <span class="nav-label">Device Data</span>
       </a>
     </li>
   </ul>
 
   <div class="role-badge">
-    <span class="nav-icon">🛡️</span>
+    <!-- Badge/tag icon -->
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+      <line x1="7" y1="7" x2="7.01" y2="7"/>
+    </svg>
     <span class="nav-label">{{auth.getRole()}}</span>
   </div>
+
   <button id="logoutBtn" (click)="logout()">
-    <span class="nav-icon">🚪</span>
+    <!-- Log out icon -->
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
     <span class="nav-label">Sign Out</span>
   </button>
 </nav>

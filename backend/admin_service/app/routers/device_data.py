@@ -14,11 +14,30 @@ READING_FIELDS = ["device_id", "user_uid", "device_name", "device_type",
                   "status", "anomaly_type", "is_anomaly", "fault_score"]
 
 
-@router.get("", summary="List all distinct device IDs")
+@router.get("", summary="List all devices with user info")
 async def list_devices(current: dict = Depends(data_access)):
     db = await get_mongo_db()
-    device_ids = await db.device_readings.distinct("device_id")
-    return sorted(device_ids)
+    # Aggregate one doc per device_id to get user info
+    pipeline = [
+        {"$group": {
+            "_id": "$device_id",
+            "device_name": {"$first": "$device_name"},
+            "device_type": {"$first": "$device_type"},
+            "user_uid":    {"$first": "$user_uid"},
+            "user_name":   {"$first": "$user_name"},
+        }},
+        {"$project": {
+            "_id": 0,
+            "device_id":   "$_id",
+            "device_name": 1,
+            "device_type": 1,
+            "user_uid":    1,
+            "user_name":   1,
+        }},
+        {"$sort": {"user_uid": 1, "device_id": 1}},
+    ]
+    docs = await db.device_readings.aggregate(pipeline).to_list(length=None)
+    return docs
 
 
 def _flatten(doc: dict) -> dict:

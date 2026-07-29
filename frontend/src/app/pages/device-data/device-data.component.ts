@@ -7,7 +7,8 @@ export class DeviceDataComponent implements OnInit, OnDestroy {
   from = '';
   to = '';
   readings: any[] = [];
-  deviceList: string[] = [];
+  deviceList: any[] = [];
+  userGroups: { user_name: string, devices: any[] }[] = [];
   loading = false;
   liveRefresh = false;
   private refreshInterval: any;
@@ -33,8 +34,20 @@ export class DeviceDataComponent implements OnInit, OnDestroy {
     this.api.getDeviceList().subscribe({
       next: (list) => {
         this.deviceList = list;
+        // Group by user_name
+        const groups: { [key: string]: any[] } = {};
+        for (const d of list) {
+          const userName = d.user_name || 'Unknown User';
+          if (!groups[userName]) groups[userName] = [];
+          groups[userName].push(d);
+        }
+        this.userGroups = Object.keys(groups).sort().map(k => ({
+          user_name: k,
+          devices: groups[k]
+        }));
+        
         if (list.length) {
-          this.deviceId = list[0];  // auto-select first device
+          this.deviceId = list[0].device_id;  // auto-select first device
           this.load();
         }
       },

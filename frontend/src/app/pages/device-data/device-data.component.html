@@ -1,22 +1,26 @@
 <app-sidebar></app-sidebar>
 <div class="page">
   <div class="header">
-    <h2 id="deviceDataTitle">📡 Device Data</h2>
+    <h2 id="deviceDataTitle">Device Data</h2>
   </div>
 
   <!-- Filters -->
   <div class="filters">
     <select id="deviceSelect" [(ngModel)]="deviceId" (change)="load()">
       <option value="">— Select a device —</option>
-      <option *ngFor="let d of deviceList" [value]="d">{{d}}</option>
+      <optgroup *ngFor="let group of userGroups" [label]="group.user_name">
+        <option *ngFor="let d of group.devices" [value]="d.device_id">
+          {{d.device_name}} ({{d.device_id}})
+        </option>
+      </optgroup>
     </select>
     <input id="fromInput" [(ngModel)]="from" type="datetime-local" title="From"/>
     <input id="toInput"   [(ngModel)]="to"   type="datetime-local" title="To"/>
-    <button id="loadDataBtn" (click)="load()">🔍 Load</button>
-    <button id="downloadCsvBtn"   (click)="downloadCsv()"   [disabled]="!deviceId">⬇ CSV</button>
-    <button id="downloadExcelBtn" (click)="downloadExcel()" [disabled]="!deviceId">⬇ Excel</button>
+    <button id="loadDataBtn" (click)="load()">Load</button>
+    <button id="downloadCsvBtn"   (click)="downloadCsv()"   [disabled]="!deviceId">CSV</button>
+    <button id="downloadExcelBtn" (click)="downloadExcel()" [disabled]="!deviceId">Excel</button>
     <button id="liveRefreshBtn" (click)="toggleLive()" [class.live-active]="liveRefresh">
-      {{ liveRefresh ? '⏹ Stop Live' : '▶ Live' }}
+      {{ liveRefresh ? 'Stop Live' : 'Live' }}
     </button>
   </div>
 
@@ -44,10 +48,14 @@
     </div>
   </div>
 
-  <div *ngIf="loading" class="loader">⏳ Loading readings…</div>
+  <div *ngIf="loading" class="loader">Loading readings…</div>
 
   <div *ngIf="!loading && !deviceId" class="empty-state">
-    <div class="empty-icon">📡</div>
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;opacity:0.3">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
     <p>Select a device from the dropdown above to view its sensor readings.</p>
     <p class="hint">{{deviceList.length}} devices available in the database.</p>
   </div>
@@ -82,7 +90,11 @@
   </table>
 
   <div *ngIf="!loading && !readings.length && deviceId" class="empty-state">
-    <div class="empty-icon">🔍</div>
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;opacity:0.3">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+    </div>
     <p>No readings found for <strong>{{deviceId}}</strong> in the selected time range.</p>
   </div>
 </div>

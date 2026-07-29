@@ -82,8 +82,8 @@ export class ApiService {
   }
 
   // ── Device Data ──────────────────────────────────────────────────────
-  getDeviceList(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.baseUrl}/devices`, { headers: this.headers })
+  getDeviceList(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/devices`, { headers: this.headers })
       .pipe(catchError((e) => this.handleError(e)));
   }
 
