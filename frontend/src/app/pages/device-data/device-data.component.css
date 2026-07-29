@@ -72,3 +72,13 @@ select option { background: #1e1a35; }
 }
 .empty-icon { font-size: 48px; margin-bottom: 12px; }
 .hint { font-size: 13px; color: rgba(255,255,255,.3); }
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+button.user-csv-btn {
+  background: rgba(108, 99, 255, 0.2);
+  border: 1px solid rgba(108, 99, 255, 0.5);
+  color: #a8a4ff;
+}
+button.user-csv-btn:hover {
+  background: rgba(108, 99, 255, 0.3);
+}

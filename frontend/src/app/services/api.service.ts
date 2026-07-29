@@ -121,4 +121,15 @@ export class ApiService {
     return this.http.get<any[]>(`${this.baseUrl}/users/${uid}/data/live`, { headers: this.headers })
       .pipe(catchError((e) => this.handleError(e)));
   }
+
+  downloadUserCsv(uid: string, from?: string, to?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    return this.http.get(`${this.baseUrl}/users/${uid}/data/csv`, {
+      headers: this.headers,
+      params,
+      responseType: 'blob'
+    }).pipe(catchError((e) => this.handleError(e)));
+  }
 }

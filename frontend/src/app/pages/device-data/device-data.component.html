@@ -17,8 +17,9 @@
     <input id="fromInput" [(ngModel)]="from" type="datetime-local" title="From"/>
     <input id="toInput"   [(ngModel)]="to"   type="datetime-local" title="To"/>
     <button id="loadDataBtn" (click)="load()">Load</button>
-    <button id="downloadCsvBtn"   (click)="downloadCsv()"   [disabled]="!deviceId">CSV</button>
-    <button id="downloadExcelBtn" (click)="downloadExcel()" [disabled]="!deviceId">Excel</button>
+    <button id="downloadCsvBtn"   (click)="downloadCsv()"   [disabled]="!deviceId">Device CSV</button>
+    <button id="downloadExcelBtn" (click)="downloadExcel()" [disabled]="!deviceId">Device Excel</button>
+    <button id="downloadUserCsvBtn" (click)="downloadUserCsv()" [disabled]="!deviceId" class="user-csv-btn">User CSV</button>
     <button id="liveRefreshBtn" (click)="toggleLive()" [class.live-active]="liveRefresh">
       {{ liveRefresh ? 'Stop Live' : 'Live' }}
     </button>

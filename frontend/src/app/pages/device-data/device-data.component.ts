@@ -97,6 +97,31 @@ export class DeviceDataComponent implements OnInit, OnDestroy {
     });
   }
 
+  downloadUserCsv(): void {
+    if (!this.deviceId) return;
+    // Find the user_uid for the selected device
+    let userUid = '';
+    for (const group of this.userGroups) {
+      const device = group.devices.find(d => d.device_id === this.deviceId);
+      if (device) {
+        userUid = device.user_uid;
+        break;
+      }
+    }
+    if (!userUid) return;
+
+    this.api.downloadUserCsv(userUid, this.from || undefined, this.to || undefined).subscribe((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `user_${userUid}_all_devices_data.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    });
+  }
+
   toggleLive(): void {
     this.liveRefresh = !this.liveRefresh;
     if (this.liveRefresh) {
