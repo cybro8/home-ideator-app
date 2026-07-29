@@ -70,11 +70,31 @@ export class DeviceDataComponent implements OnInit, OnDestroy {
   }
 
   downloadCsv(): void {
-    window.open(`${this.api.downloadCsv(this.deviceId)}`, '_blank');
+    if (!this.deviceId) return;
+    this.api.downloadCsv(this.deviceId, this.from || undefined, this.to || undefined).subscribe((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.deviceId}_data.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    });
   }
 
   downloadExcel(): void {
-    window.open(`${this.api.downloadExcel(this.deviceId)}`, '_blank');
+    if (!this.deviceId) return;
+    this.api.downloadExcel(this.deviceId, this.from || undefined, this.to || undefined).subscribe((blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${this.deviceId}_data.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    });
   }
 
   toggleLive(): void {

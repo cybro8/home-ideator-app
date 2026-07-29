@@ -95,12 +95,26 @@ export class ApiService {
       .pipe(catchError((e) => this.handleError(e)));
   }
 
-  downloadCsv(deviceId: string): string {
-    return `${this.baseUrl}/devices/${deviceId}/data/csv`;
+  downloadCsv(deviceId: string, from?: string, to?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    return this.http.get(`${this.baseUrl}/devices/${deviceId}/data/csv`, {
+      headers: this.headers,
+      params,
+      responseType: 'blob'
+    }).pipe(catchError((e) => this.handleError(e)));
   }
 
-  downloadExcel(deviceId: string): string {
-    return `${this.baseUrl}/devices/${deviceId}/data/excel`;
+  downloadExcel(deviceId: string, from?: string, to?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (from) params = params.set('from', from);
+    if (to) params = params.set('to', to);
+    return this.http.get(`${this.baseUrl}/devices/${deviceId}/data/excel`, {
+      headers: this.headers,
+      params,
+      responseType: 'blob'
+    }).pipe(catchError((e) => this.handleError(e)));
   }
 
   getLiveData(uid: string): Observable<any[]> {
