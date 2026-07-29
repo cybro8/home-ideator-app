@@ -103,6 +103,32 @@ services:
       - homeideator_net
     restart: unless-stopped
 
+  # ── Database Seeder ─────────────────────────────────────────────────────
+  db_seeder:
+    image: python:3.11-slim
+    container_name: hi_db_seeder
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ../data:/app/data
+    working_dir: /app
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MONGO_URI=mongodb://mongodb:27017
+    command: >
+      sh -c "pip install --no-cache-dir pymysql bcrypt pymongo==4.10.1 && 
+             python data/seed_mysql_users.py && 
+             python data/seed_mongodb.py"
+    networks:
+      - homeideator_net
+
 # ── Volumes & Networks ──────────────────────────────────────────────────
 volumes:
   mysql_data:
