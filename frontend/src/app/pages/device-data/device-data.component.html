@@ -127,14 +127,6 @@
       </div>
 
       <div class="field">
-        <label>Format</label>
-        <select [(ngModel)]="downloadFormat">
-          <option value="csv">CSV</option>
-          <option value="excel">Excel</option>
-        </select>
-      </div>
-
-      <div class="field">
         <label>From Date & Time (Optional)</label>
         <input [(ngModel)]="from" type="datetime-local" class="panel-input"/>
       </div>
@@ -142,6 +134,14 @@
       <div class="field">
         <label>To Date & Time (Optional)</label>
         <input [(ngModel)]="to" type="datetime-local" class="panel-input"/>
+      </div>
+
+      <div class="field">
+        <label>Format</label>
+        <select [(ngModel)]="downloadFormat">
+          <option value="csv">CSV</option>
+          <option value="excel">Excel</option>
+        </select>
       </div>
     </div>
     
